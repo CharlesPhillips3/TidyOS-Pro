@@ -1,0 +1,13 @@
+# TidyOS Pro (Heltec V4, 16 MB): dual boot with The Shelf
+# The boot menu (TidyBoot) is the factory app: it shows The Shelf / TidyOS Pro for 30 s on the
+# OLED, installs updates waiting on the SD card, and starts the one you pick.
+# Name,   Type, SubType,  Offset,   Size
+nvs,      data, nvs,      0x9000,   0x5000
+otadata,  data, ota,      0xe000,   0x2000
+menu,     app,  factory,  0x10000,  0x70000
+tidyos,   app,  ota_0,    0x80000,  0x300000
+shelf,    app,  ota_1,    0x380000, 0x200000
+www,      data, spiffs,   0x580000, 0x200000
+tidyfs,   data, spiffs,   0x780000, 0x100000
+ffat,     data, fat,      0x880000, 0x770000
+coredump, data, coredump, 0xFF0000, 0x10000

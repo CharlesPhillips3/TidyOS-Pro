@@ -1,0 +1,160 @@
+diff --git a/src/displaycontroller.cpp b/src/displaycontroller.cpp
+index 7f53c13..3dca242 100644
+--- a/src/displaycontroller.cpp
++++ b/src/displaycontroller.cpp
+@@ -677,8 +677,13 @@ void IRAM_ATTR BitmappedDisplayController::showSprites(Rect & updateRect)
+ 
+ 
+ // cursor = nullptr -> disable mouse
++// (TidyOS) HTML5 edition: the browser shows its own pointer, so none is drawn into the picture -
++// a drawn pointer saves and restores what's under it, which smeared fast-redrawing games
++bool fabglNoMouseSprite = false;
++
+ void BitmappedDisplayController::setMouseCursor(Cursor * cursor)
+ {
++  if (fabglNoMouseSprite) cursor = nullptr;
+   if (cursor == nullptr || &cursor->bitmap != m_mouseCursor.getFrame()) {
+     m_mouseCursor.visible = false;
+     m_mouseCursor.clearBitmaps();
+diff --git a/src/fabui.cpp b/src/fabui.cpp
+index 480579f..87bff82 100644
+--- a/src/fabui.cpp
++++ b/src/fabui.cpp
+@@ -174,10 +174,21 @@ uiObject::~uiObject()
+ // uiEvtHandler
+ 
+ 
++// TidyOS patch: remember recently deleted handlers so events still queued for them are dropped
++// (otherwise run() calls into freed memory - a crash at PC 0)
++static void * s_deadHandlers[64];
++static int    s_deadPos = 0;
++bool fabglHandlerIsDead(void * h)
++{
++  for (auto d : s_deadHandlers) if (d == h) return true;
++  return false;
++}
++
+ uiEvtHandler::uiEvtHandler(uiApp * app)
+   : m_app(app)
+ {
+   objectType().uiEvtHandler = true;
++  for (auto & d : s_deadHandlers) if (d == this) d = nullptr;     // this address is alive again
+ }
+ 
+ 
+@@ -185,6 +196,8 @@ uiEvtHandler::~uiEvtHandler()
+ {
+   if (m_app)
+     m_app->killEvtHandlerTimers(this);
++  s_deadHandlers[s_deadPos] = this;
++  s_deadPos = (s_deadPos + 1) % 64;
+ }
+ 
+ 
+@@ -296,6 +309,9 @@ int uiApp::run(BitmappedDisplayController * displayController, Keyboard * keyboa
+     uiEvent event;
+     if (getEvent(&event, -1)) {
+ 
++      if (event.dest && fabglHandlerIsDead(event.dest))
++        continue;                                           // TidyOS: its window is already gone
++
+       preprocessEvent(&event);
+ 
+       #if DUMPEVENTS
+@@ -383,6 +399,9 @@ void uiApp::processEvents()
+   uiEvent event;
+   while (getEvent(&event, 0)) {
+ 
++    if (event.dest && fabglHandlerIsDead(event.dest))
++      continue;
++
+     preprocessEvent(&event);
+ 
+     #if DUMPEVENTS
+@@ -627,8 +646,17 @@ void uiApp::postDebugMsg(char const * msg)
+ }
+ 
+ 
++// (TidyOS) a window's "destroy" event must never be lost: a full queue (e.g. a burst of mouse
++// moves from the browser) used to drop it, and the whole window then stayed in memory
++static uiEvent s_pendDestroy[48];
++static int     s_pendDestroyN = 0;
++
+ bool uiApp::getEvent(uiEvent * event, int timeOutMS)
+ {
++  while (s_pendDestroyN > 0 && xQueueSendToBack(m_eventsQueue, &s_pendDestroy[0], 0) == pdTRUE) {
++    for (int i = 1; i < s_pendDestroyN; ++i) s_pendDestroy[i - 1] = s_pendDestroy[i];
++    --s_pendDestroyN;
++  }
+   return xQueueReceive(m_eventsQueue, event,  msToTicks(timeOutMS)) == pdTRUE;
+ }
+ 
+@@ -795,7 +823,13 @@ void uiApp::repaintRect(Rect const & rect)
+ {
+   uiEvent evt = uiEvent(m_rootWindow, UIEVT_GENPAINTEVENTS);
+   evt.params.rect = rect;
+-  postEvent(&evt);
++  if (!postEvent(&evt)) {
++    // (TidyOS) the queue is full (a flood of mouse moves from the browser): don't lose the repaint -
++    // keep it and send it once there's room, merged with any other waiting repaint
++    for (int i = 0; i < s_pendDestroyN; ++i)
++      if (s_pendDestroy[i].id == UIEVT_GENPAINTEVENTS) { s_pendDestroy[i].params.rect = s_pendDestroy[i].params.rect.merge(rect); return; }
++    if (s_pendDestroyN < 48) s_pendDestroy[s_pendDestroyN++] = evt;
++  }
+ }
+ 
+ 
+@@ -859,6 +893,9 @@ bool uiApp::processModalWindowEvents(ModalWindowState * state, int timeout)
+   uiEvent event;
+   while (getEvent(&event, timeout)) {
+ 
++    if (event.dest && fabglHandlerIsDead(event.dest))
++      continue;
++
+     if (m_modalWindow != state->window && event.dest == state->window) {
+       // becomes modal when first message arrives
+       m_modalWindow = state->window;
+@@ -1042,7 +1079,8 @@ void uiApp::blinkCaret(bool forceOFF)
+ // this is the unique way to manually destroy a window
+ void uiApp::destroyWindow(uiWindow * window)
+ {
+-  if (window) {
++  if (window && !window->m_destroying) {   // TidyOS patch: destroying twice frees it twice
++    window->m_destroying = true;
+     // first destroy children
+     for (auto child = window->lastChild(); child; child = child->prev())
+       destroyWindow(child);
+@@ -1057,7 +1095,7 @@ void uiApp::destroyWindow(uiWindow * window)
+     showWindow(window, false);
+     // to actualy detach from parent and destroy the object
+     uiEvent evt = uiEvent(window, UIEVT_DESTROY);
+-    postEvent(&evt);
++    if (!postEvent(&evt) && s_pendDestroyN < 48) s_pendDestroy[s_pendDestroyN++] = evt;   // queue full: send it later
+   }
+ }
+ 
+@@ -1076,6 +1114,10 @@ void uiApp::cleanWindowReferences(uiWindow * window)
+     m_modalWindow = nullptr;
+   if (m_caretWindow == window)
+     m_caretWindow = nullptr;
++  if (m_lastFocusedWindow == window)    // TidyOS patch: these two were left pointing at deleted windows
++    m_lastFocusedWindow = nullptr;
++  if (m_keyDownHandler == window)
++    m_keyDownHandler = nullptr;
+ }
+ 
+ 
+@@ -2025,7 +2067,12 @@ Rect uiFrame::getBtnRect(int buttonIndex)
+   Rect barRect = titleBarRect();
+   Rect btnRect = Rect(barRect.X2 - btnSize - CORNERSENSE / 2, barRect.Y1,
+                       barRect.X2 - CORNERSENSE / 2, barRect.Y2);
+-  while (buttonIndex--)
++  // (TidyOS) pack from the right, skipping buttons this window doesn't have,
++  // so a minimize button sits right next to the close button
++  int slot = 0;
++  if (buttonIndex >= 1 && m_frameProps.hasCloseButton) ++slot;
++  if (buttonIndex >= 2 && m_frameProps.hasMaximizeButton) ++slot;
++  while (slot--)
+     btnRect = btnRect.translate(-btnSize, 0);
+   return btnRect;
+ }

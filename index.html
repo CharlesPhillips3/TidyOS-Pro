@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TidyOS Pro for Heltec V4</title>
+<meta name="description" content="Install TidyOS Pro, a 900 MHz field computer for AMI and RF site work, on a Heltec WiFi LoRa 32 V4 from your browser. Dual boot with The Shelf.">
+<link rel="icon" href="docs/favicon-32.png">
+<script type="module" src="https://unpkg.com/esp-web-tools@10.1.1/dist/web/install-button.js?module"></script>
+<style>
+:root{--ink:#0d1b2e;--surface:#132842;--text:#eef3f9;--muted:#a9b9cc;--accent:#ffd84d;--accent-ink:#0b2442;--blue:#3d8be0;--divider:#24425f;--bad:#ff8a73;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--text);font-family:var(--sans);line-height:1.55}
+.wrap{max-width:920px;margin:0 auto;padding:32px 16px 64px}
+header{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+header img{width:96px;height:96px}
+h1{font-size:38px;margin:0;line-height:1.1;letter-spacing:-.5px}
+h1 .pro{background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:0 10px;font-size:26px;vertical-align:6px;margin-left:6px}
+.lead{color:var(--muted);font-size:17px;max-width:680px;margin:8px 0 0}
+h2{font-size:24px;margin:44px 0 12px}
+h3{font-size:16px;margin:0 0 6px}
+p{margin:0 0 12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--divider);border-radius:16px;padding:18px}
+.card small{color:var(--muted);display:block;margin-top:10px;font-size:13px}
+.tag{display:inline-block;font-size:12px;font-weight:700;color:var(--accent-ink);background:var(--accent);border-radius:999px;padding:2px 9px;margin-bottom:8px}
+.tag.blue{background:var(--blue);color:#fff}
+esp-web-install-button button,.btn{font:inherit;font-weight:700;background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:11px 20px;cursor:pointer;font-size:15px}
+.btn.alt{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+.warn{border-left:4px solid var(--accent);background:var(--surface);padding:12px 14px;border-radius:0 12px 12px 0;margin:14px 0;font-size:15px}
+.warn.red{border-left-color:var(--bad)}
+.muted{color:var(--muted);font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:15px;background:var(--surface);border:1px solid var(--divider);border-radius:14px;overflow:hidden}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--divider);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:13px}
+tr:last-child td{border-bottom:0}
+code{background:var(--surface);border:1px solid var(--divider);border-radius:6px;padding:1px 6px;font-size:.92em}
+ol{padding-left:22px}ol li{margin-bottom:8px}
+a{color:var(--accent)}
+ul.ok{padding-left:20px;margin:0}ul.ok li{margin-bottom:6px}
+.fb-status{margin-top:12px;background:var(--surface);border:1px solid var(--divider);border-radius:14px;padding:14px 16px}
+.fb-bar{height:8px;border-radius:999px;background:var(--divider);overflow:hidden;margin-bottom:8px}
+.fb-bar div{height:100%;width:0;background:var(--accent);transition:width .2s}
+.oled{font:13px/1.25 ui-monospace,Menlo,Consolas,monospace;background:#000;color:#9fd7ff;border-radius:10px;padding:10px 12px;display:inline-block;white-space:pre}
+@media(max-width:560px){h1{font-size:30px}header img{width:72px;height:72px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="docs/logo.svg" alt="TidyOS Pro logo">
+    <div>
+      <h1>TidyOS<span class="pro">PRO</span></h1>
+      <p class="lead">A pocket field computer on a Heltec V4: a 902–928 MHz spectrum sweep, AMI meter traffic counter, GPS site survey and an RF exposure estimate, plus the TidyOS desktop in any browser. It can share the board with The Shelf (dual boot).</p>
+    </div>
+  </header>
+
+  <h2>1. Back up the board first</h2>
+  <p>Installing replaces what's on the board. A backup copies the whole flash (firmware, settings, Wi-Fi, files kept on the board) to one file on this computer, and <b>Restore</b> (step 6) puts it back exactly as it was. Plug the board in with a USB <i>data</i> cable and click Back up. It takes 3–5 minutes.</p>
+  <div class="card">
+    <button class="btn" id="fbBackup">Back up board</button>
+    <small>Files on a microSD card aren't part of this; they stay on the card.</small>
+    <div class="fb-status" id="fbStatus" hidden><div class="fb-bar"><div id="fbFill"></div></div><div id="fbMsg"></div></div>
+  </div>
+
+  <h2>2. Install</h2>
+  <p>Pick your board and whether you want The Shelf on it too, then choose the board's port when Chrome asks. Chrome or Edge on a PC, Mac or Raspberry Pi. If no port shows up, hold <b>PRG</b> on the board while you plug it in.</p>
+  <div class="warn">The <b>dual boot</b> install puts TidyOS Pro and The Shelf side by side. After every restart the board's screen shows a <b>30-second boot menu</b>: a short press of PRG switches between them, holding PRG starts the one shown now, and if you do nothing it starts the one you used last.</div>
+  <div class="grid">
+    <div class="card">
+      <span class="tag">Most boards</span>
+      <h3>Heltec V4 &middot; TidyOS Pro + The Shelf</h3>
+      <esp-web-install-button manifest="manifest-pro-v4-dual.json"><button slot="activate">Install dual boot</button></esp-web-install-button>
+      <small>About 7.5 MB. The standard V4 (ESP32-S3R2, 2 MB PSRAM).</small>
+    </div>
+    <div class="card">
+      <span class="tag blue">TidyOS Pro only</span>
+      <h3>Heltec V4 &middot; TidyOS Pro</h3>
+      <esp-web-install-button manifest="manifest-pro-v4.json"><button slot="activate">Install TidyOS Pro</button></esp-web-install-button>
+      <small>About 3 MB. You can add The Shelf later with the dual boot button.</small>
+    </div>
+    <div class="card">
+      <span class="tag blue">R8 version</span>
+      <h3>Heltec V4-R8 (8 MB PSRAM)</h3>
+      <esp-web-install-button manifest="manifest-pro-v4-r8-dual.json"><button slot="activate">Install dual boot (R8)</button></esp-web-install-button>
+      <p style="margin-top:10px"><esp-web-install-button manifest="manifest-pro-v4-r8.json"><button slot="activate" class="btn alt">TidyOS Pro only (R8)</button></esp-web-install-button></p>
+      <small>Only if the box or listing says "R8" or "8MB PSRAM".</small>
+    </div>
+  </div>
+  <p class="muted" style="margin-top:12px">Installing keeps the board's saved Wi-Fi and settings unless you tick "erase". The Shelf keeps its microSD card files; files The Shelf kept on the board itself are cleared by a dual boot install (back them up first, step 1).</p>
+
+  <h2>3. Wire it up</h2>
+  <table>
+    <tr><th>Part</th><th>Heltec V4 pins</th><th>Notes</th></tr>
+    <tr><td>GNSS (GPS) module</td><td>The V4's GNSS header (GPIO 38&ndash;42, 34)</td><td>Found by itself at start-up (9600 or 115200 baud). Sets the clock when there's no internet.</td></tr>
+    <tr><td>microSD module</td><td>CS <b>4</b> &middot; MISO <b>6</b> &middot; CLK <b>47</b> &middot; MOSI <b>48</b> &middot; 3V3 &middot; GND</td><td>Moved off GPIO 39&ndash;42, which the GNSS module uses. 3.3 V modules only. FAT32.</td></tr>
+    <tr><td>900 MHz antenna</td><td>The LoRa antenna connector</td><td>TidyOS Pro only <b>listens</b>; it never transmits. Use a 902&ndash;928 MHz antenna and set its gain in RF Sweep (stock V4 &asymp; 2 dBi).</td></tr>
+  </table>
+  <p class="muted" style="margin-top:10px">No GPS fitted? Then a card wired for The Shelf (CS 42, MOSI 41, CLK 40, MISO 39) still works.</p>
+
+  <h2>4. Connect</h2>
+  <ol>
+    <li>Power the board. Pick <b>TidyOS Pro</b> on the boot menu (or wait).</li>
+    <li>First time: join the Wi-Fi <code>TidyOS-XXXXXX</code> (password <code>tidyos123</code>) on your phone and open <code>http://192.168.4.1</code>. The board's own screen shows the name and address. In <b>Settings</b>, join your home or work Wi-Fi.</li>
+    <li>After that open <code>http://tidyos-xxxxxx.local</code> (the address is on the desktop's bottom bar). The top bar has <b>Restart</b> (back to the boot menu) and <b>&#9790; Deep Sleep</b> (radio, GPS and screen off; press PRG to wake).</li>
+  </ol>
+  <div class="oled">Start which one?
+&#9608; TidyOS Pro      &#9608;
+  The Shelf
+PRG: switch  hold: go  27s</div>
+
+  <h2>5. The field tools</h2>
+  <div class="grid">
+    <div class="card"><h3>RF Sweep</h3><p>Live 902&ndash;928 MHz spectrum in 129 channels of 200 kHz (the Wi-SUN / FAN plan Riva and most 900 MHz AMI mesh networks use), with average, peak and peak hold, a waterfall, the noise floor and an overload warning. Saves a CSV.</p></div>
+    <div class="card"><h3>Meter Traffic</h3><p>How busy each channel is across the band, and a one-channel burst counter: bursts per minute, time on the air, burst lengths. It counts energy, so it works for OpenWay (hw 2 / 3 / 3.1 / ICM) and Riva alike. It doesn't decode anything.</p></div>
+    <div class="card"><h3>Site Survey</h3><p>Walk or drive with the GPS: every few seconds it logs position, noise floor, strongest signal and band occupancy to <code>SD:/rf/survey-*.csv</code>, draws the points as a coloured map, and exports KML for Google Earth.</p></div>
+    <div class="card"><h3>RF Exposure</h3><p>An <i>estimate</i> of power density (mW/cm&sup2;) from the band's readings, against the FCC limits, plus a calculator for "this transmitter, this far away". See below for how it's worked out.</p></div>
+    <div class="card"><h3>GPS &middot; Wi-Fi Scan &middot; Nic Sweep &middot; Ping</h3><p>GNSS fix and waypoints; 2.4 GHz networks and their channels; every device on your network; and ping with history.</p></div>
+    <div class="card"><h3>Clone</h3><p>Copy this board's firmware onto another V4 by wire: GPIO 43&rarr;RX, GPIO 44&larr;TX, GND (and optionally GPIO 3&rarr;RST, GPIO 33&rarr;PRG). Settings, Wi-Fi and files aren't copied.</p></div>
+  </div>
+  <p style="margin-top:14px">The desktop's right-hand panel shows 4-day graphs for wind and gusts, humidity, storms (CAPE, with thunderstorm hours marked) and a <b>tropospheric ducting index</b> for where you are (900 MHz carries much further than normal during ducting), plus solar flux, Kp, X-ray class, an HF band estimate, National Weather Service alerts, and the board's own 900 MHz noise floor live.</p>
+
+  <h2>How the exposure estimate works (and its limits)</h2>
+  <p>The radio measures the power reaching it, in dBm. Corrected for the front-end and any attenuator, that's the power the antenna picked up. An antenna of gain G has an effective area of G&middot;&lambda;&sup2;/4&pi; (about 135 cm&sup2; for 2 dBi at 915 MHz), so the power density that delivered it is power &divide; area. Summing every channel's time-averaged power gives the band's average, compared with the FCC limit at 915 MHz: <b>0.61 mW/cm&sup2;</b> for the general public and 3.05 mW/cm&sup2; for workers, averaged over 30 minutes (47 CFR 1.1310).</p>
+  <div class="warn red">It's an estimate, good to a few dB: the antenna's real gain, the V4's front-end gain, direction, polarisation and reflections all move it. Right next to a meter the receiver runs out of range and reads <b>low</b>; the app says <b>OVERLOAD</b> when that happens. For a number you can sign off, use a calibrated broadband RF exposure meter.</div>
+  <p class="muted">For scale: a 1 W radio sending all the time gives about 0.013 mW/cm&sup2; at 1 m (2% of the public limit). AMI radios send in short bursts, typically 1&ndash;2% of the time.</p>
+
+  <h2>6. Restore a backup</h2>
+  <p>Puts a backup from step 1 back on the board exactly as it was, whatever is on it now. Restoring a backup made before TidyOS Pro gives you the board as it was then (for example The Shelf on its own).</p>
+  <div class="card">
+    <button class="btn alt" id="fbRestore">Restore from file&hellip;</button>
+    <input type="file" id="fbFile" accept=".gz,.bin" hidden>
+    <small>Use a backup from the same kind of board. The microSD card isn't touched.</small>
+    <div class="fb-status" id="rsStatus" hidden><div class="fb-bar"><div id="rsFill"></div></div><div id="rsMsg"></div></div>
+  </div>
+
+  <h2>Updates</h2>
+  <p>TidyOS Pro: Settings &rarr; <b>Check for updates</b> (needs the microSD card: the update is saved there and the boot menu installs it). The Shelf on a dual-boot board updates from its own settings page as usual; it gets its dual-boot version from this site.</p>
+
+  <p class="muted" style="margin-top:36px">Source, build notes and wiring: <a href="https://github.com/CharlesPhillips3/TidyOS-Pro">github.com/CharlesPhillips3/TidyOS-Pro</a> &middot; Based on <a href="https://github.com/hardwaremack-prog/TidyOS-ESP32">TidyOS</a> and <a href="https://github.com/hardwaremack-prog/The-Shelf-Heltec-V4900mhzMesh">The Shelf for Heltec</a>. Built on FabGL (GPL v3), RadioLib, U8g2.</p>
+</div>
+<script type="module">
+// Whole-board flash backup and restore over USB, with esptool-js.
+const ESPTOOL = 'https://unpkg.com/esptool-js@0.5.7/bundle.js';
+const $ = id => document.getElementById(id);
+const busy = on => { $('fbBackup').disabled = $('fbRestore').disabled = on; };
+let at = 'fb';      // which card shows the progress: fb = backup, rs = restore
+const show = (msg, frac) => {
+  $(at + 'Status').hidden = false; $(at + 'Msg').textContent = msg;
+  if (frac != null) $(at + 'Fill').style.width = Math.round(frac * 100) + '%';
+};
+const mb = n => n < 1048576 ? Math.max(1, Math.round(n / 1024)) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
+
+if (!('serial' in navigator)) {
+  for (const id of ['fbBackup', 'fbRestore']) $(id).disabled = true;
+  show('Open this page in Chrome or Edge on a computer to back up or restore over USB.');
+}
+
+async function connect() {
+  const { ESPLoader, Transport } = await import(ESPTOOL);
+  const port = await navigator.serial.requestPort();
+  const transport = new Transport(port, true);
+  const terminal = { clean() {}, writeLine() {}, write() {} };
+  const loader = new ESPLoader({ transport, baudrate: 921600, romBaudrate: 115200, terminal });
+  show('Connecting to the board…', 0);
+  const chip = await loader.main();
+  const bytes = (await loader.getFlashSize()) * 1024;
+  if (!bytes) throw new Error("Couldn't read the board's flash size.");
+  return { loader, transport, chip, bytes };
+}
+async function done(c) {
+  try { await c.loader.after('hard_reset'); } catch {}
+  try { await c.transport.disconnect(); } catch {}
+}
+function friendly(e) {
+  const m = String(e && e.message || e);
+  if (/No port selected|NotFoundError/i.test(m)) return 'No board picked.';
+  if (/open|busy|in use/i.test(m)) return 'The port is busy. Close any other page or app using the board (another tab, Arduino, a serial monitor) and try again.';
+  return m + '. Unplug the board, plug it back in, and try again. If it keeps failing, hold PRG while plugging it in.';
+}
+
+$('fbBackup').onclick = async () => {
+  at = 'fb'; let c; busy(true);
+  try {
+    c = await connect();
+    const t0 = Date.now();
+    const data = await c.loader.readFlash(0, c.bytes, (_p, got, total) => {
+      const s = (Date.now() - t0) / 1000, left = got ? s * (total - got) / got : 0;
+      show(`Reading ${mb(got)} of ${mb(total)}` + (got > 65536 ? ` · about ${Math.ceil(left / 60)} min left` : ''), got / total);
+    });
+    await done(c); c = null;
+    show('Compressing…', 1);
+    const gz = await new Response(new Blob([data]).stream().pipeThrough(new CompressionStream('gzip'))).blob();
+    const kind = data.length >= 16 * 1048576 ? 'v4' : data.length >= 8 * 1048576 ? 'v3' : 'board';
+    const name = `heltec-${kind}-flash-${new Date().toISOString().slice(0, 10)}.bin.gz`;
+    if (window.showSaveFilePicker) {
+      try {
+        const h = await showSaveFilePicker({ suggestedName: name, types: [{ description: 'Board backup', accept: { 'application/gzip': ['.gz'] } }] });
+        const w = await h.createWritable(); await w.write(gz); await w.close();
+      } catch (e) { if (e.name === 'AbortError') { show('Backup read but not saved.'); return; } throw e; }
+    } else {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(gz); a.download = name; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+    }
+    show(`Saved ${name}: ${mb(data.length)} of flash in ${mb(gz.size)}. The board has restarted.`, 1);
+  } catch (e) { show(friendly(e)); }
+  finally { if (c) await done(c); busy(false); }
+};
+
+$('fbRestore').onclick = () => { at = 'rs'; $('fbFile').click(); };
+$('fbFile').onchange = async () => {
+  const f = $('fbFile').files[0]; $('fbFile').value = '';
+  if (!f) return;
+  let c; busy(true);
+  try {
+    show('Opening ' + f.name + '…', 0);
+    let data = new Uint8Array(await f.arrayBuffer());
+    if (data[0] === 0x1f && data[1] === 0x8b) data = new Uint8Array(await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
+    if (data.length < 1048576 || data.length % 4096) throw new Error("That file isn't a whole-board backup");
+    if (!confirmRestore(f.name, data.length)) { show('Restore cancelled.'); return; }
+    c = await connect();
+    if (data.length > c.bytes) throw new Error(`That backup is ${mb(data.length)} but this board's flash is ${mb(c.bytes)}. Use a backup from the same kind of board`);
+    let bin = '';
+    for (let i = 0; i < data.length; i += 0x8000) bin += String.fromCharCode.apply(null, data.subarray(i, i + 0x8000));
+    const t0 = Date.now();
+    await c.loader.writeFlash({
+      fileArray: [{ data: bin, address: 0 }],
+      flashSize: 'keep', flashMode: 'keep', flashFreq: 'keep',
+      eraseAll: false, compress: true,
+      reportProgress: (_i, w, total) => {
+        const s = (Date.now() - t0) / 1000, left = w ? s * (total - w) / w : 0;
+        show(`Writing ${Math.round(w / total * 100)}%` + (w > 65536 ? ` · about ${Math.ceil(left / 60)} min left` : ''), w / total);
+      },
+    });
+    await done(c); c = null;
+    show(`Restored ${f.name}. The board has restarted.`, 1);
+  } catch (e) { show(friendly(e)); }
+  finally { if (c) await done(c); busy(false); }
+};
+function confirmRestore(name, n) {
+  return window.confirm(`Restore ${name} (${mb(n)})?\n\nThis replaces everything on the board's flash: firmware (TidyOS Pro, The Shelf, boot menu), Wi-Fi, settings and on-board files. The microSD card isn't touched.`);
+}
+</script>
+</body>
+</html>

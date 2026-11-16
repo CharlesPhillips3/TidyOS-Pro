@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240" role="img" aria-label="TidyOS Pro logo">
+  <title>TidyOS Pro</title>
+  <rect x="4" y="4" width="232" height="232" rx="40" fill="#0055aa"/>
+  <!-- radio waves off the top of the mast -->
+  <g fill="none" stroke="#ffffff" stroke-width="7" stroke-linecap="round" opacity="0.95">
+    <path d="M150 52 a34 34 0 0 1 0 44"/>
+    <path d="M166 38 a54 54 0 0 1 0 72"/>
+    <path d="M182 26 a74 74 0 0 1 0 96" opacity="0.7"/>
+    <path d="M90 52 a34 34 0 0 0 0 44"/>
+    <path d="M74 38 a54 54 0 0 0 0 72"/>
+    <path d="M58 26 a74 74 0 0 0 0 96" opacity="0.7"/>
+  </g>
+  <!-- the five-block T: the classic TidyOS mark, its top block now the transmitter -->
+  <g stroke="#111" stroke-width="5">
+    <rect x="38" y="56" width="52" height="40" fill="#e8e8e8"/>
+    <rect x="94" y="56" width="52" height="40" fill="#ffd84d"/>
+    <rect x="150" y="56" width="52" height="40" fill="#e8e8e8"/>
+    <rect x="94" y="100" width="52" height="40" fill="#e8e8e8"/>
+    <rect x="94" y="144" width="52" height="40" fill="#e8e8e8"/>
+  </g>
+  <!-- PRO badge -->
+  <rect x="120" y="182" width="96" height="38" rx="9" fill="#ffd84d" stroke="#111" stroke-width="4"/>
+  <text x="168" y="210" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="26" fill="#0055aa">PRO</text>
+</svg>
