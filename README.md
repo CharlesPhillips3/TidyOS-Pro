@@ -4,6 +4,10 @@
 
 **One-click install: https://charlesphillips3.github.io/TidyOS-Pro/** (Chrome or Edge, USB data cable)
 
+[![The TidyOS Pro install page](docs/screenshot.png)](docs/screenshot-full.png)
+
+*The install page ([full page](docs/screenshot-full.png)).*
+
 TidyOS Pro turns a Heltec WiFi LoRa 32 V4 into a pocket field computer for 900 MHz and AMI work.
 It's [TidyOS](https://github.com/hardwaremack-prog/TidyOS-ESP32) ported to the V4's ESP32-S3, with
 tools for its SX1262 radio and GNSS module. The TidyOS desktop shows up in any browser on the same Wi-Fi.
